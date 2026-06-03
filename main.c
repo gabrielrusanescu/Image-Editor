@@ -1,4 +1,4 @@
-#include <stdio.h>//editor imagini pentru fisiere text ppm/pgm
+#include <stdio.h>//doar fisiere text ppm/pgm
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -16,14 +16,14 @@ typedef struct{
     rgb_t **color;
 } image_t;
 
-void freememory(image_t *img) {
-    if (img->matrix) {
-        for (int i = 0; i < img->height; i++) free(img->matrix[i]);
+void freememory(image_t *img){
+    if(img->matrix){
+        for(int i=0; i<img->height; i++) free(img->matrix[i]);
         free(img->matrix);
         img->matrix = NULL;
     }
-    if (img->color) {
-        for (int i = 0; i < img->height; i++) free(img->color[i]);
+    if(img->color){
+        for(int i=0; i<img->height; i++) free(img->color[i]);
         free(img->color);
         img->color = NULL;
     }
@@ -34,9 +34,10 @@ void closefile(FILE* f)
     if(f!=NULL) fclose(f);
 }
 
-int pow2(int n) {
-    if (n <= 0) return 0;
-    return (n & (n - 1)) == 0;
+int pow2(int n)
+{
+    if(n<=0) return 0;
+    return (n&(n-1))==0;
 }
 
 int chartoint(char *x)
@@ -66,16 +67,16 @@ rgb_t **coloralloc(int m, int n)
 }
 
 // functie care sare peste comentarii
-void read_next_int(FILE *f, int *val) {
+void readnextint(FILE *f, int *val){
     char buf[100];
     int ch;
     while (1) {
         ch = fgetc(f);
-        if (ch == '#') {
+        if (ch == '#'){
             fgets(buf, sizeof(buf), f);
         } else if (ch != ' ' && ch != '\n' && ch != '\t' && ch != '\r') {
             ungetc(ch, f);
-            if (fscanf(f, "%d", val) == 1) {
+            if (fscanf(f, "%d", val) == 1){
                 return;
             } else {
                 printf("Error reading variable\n");
@@ -85,19 +86,19 @@ void read_next_int(FILE *f, int *val) {
     }
 }
 
-void rotate_selection_90(image_t *img) {
+void rotatieselectie90(image_t *img) {
     int size = img->x2 - img->x1;
     if (strcmp(img->tip, "P3") == 0) {
         rgb_t **tmp = coloralloc(size, size);
 
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        for (int i=0; i<size; i++) {
+            for (int j=0; j<size; j++) {
                 tmp[j][size - 1 - i] = img->color[img->y1 + i][img->x1 + j];
             }
         }
 
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        for (int i=0; i<size; i++) {
+            for (int j=0; j<size; j++) {
                 img->color[img->y1 + i][img->x1 + j] = tmp[i][j];
             }
             free(tmp[i]);
@@ -105,13 +106,13 @@ void rotate_selection_90(image_t *img) {
         free(tmp);
     } else {
         int **tmp = matrixalloc(size, size);
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        for (int i=0; i<size; i++) {
+            for (int j=0; j<size; j++) {
                 tmp[j][size - 1 - i] = img->matrix[img->y1 + i][img->x1 + j];
             }
         }
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        for (int i=0; i<size; i++) {
+            for (int j=0; j<size; j++) {
                 img->matrix[img->y1 + i][img->x1 + j] = tmp[i][j];
             }
             free(tmp[i]);
@@ -151,8 +152,8 @@ void apply_filter(image_t *img, double kernel[3][3]) {
         }
     }
 
-    for (int i = 0; i < img->height; i++) {
-        for (int j = 0; j < img->width; j++) {
+    for (int i=0; i<img->height; i++) {
+        for (int j=0; j<img->width; j++) {
             img->color[i][j] = temp[i][j];
         }
         free(temp[i]);
@@ -170,8 +171,8 @@ FILE* loadfile(char file[], image_t *img)
     }
     printf("Loaded %s\n", file);
     img->tip[0]=fgetc(f), img->tip[1]=fgetc(f), img->tip[2]='\0';
-    read_next_int(f, &img->width);
-    read_next_int(f, &img->height);
+    readnextint(f, &img->width);
+    readnextint(f, &img->height);
     /*fgetc(f);// scot \n
     char buf[100];
     do{
@@ -187,7 +188,7 @@ FILE* loadfile(char file[], image_t *img)
         p=strtok(NULL, " ");
     }*/
     if (strcmp(img->tip, "P1") != 0) {//P2 si P3 au si valoarea maxima scale
-        read_next_int(f, &img->scale);
+        readnextint(f, &img->scale);
     }
     img->x1=0, img->y1=0, img->x2=img->width, img->y2=img->height;
     if(!strcmp(img->tip, "P1")){
@@ -229,14 +230,14 @@ void histogram(image_t img, int x, int y) {
     long *bins = calloc(y, sizeof(long));
     int valori_per_bin = 256 / y;//cate valori am per un singur bin
 
-    for (int i = 0; i < y; i++) {
-        for (int j = 0; j < valori_per_bin; j++) {
+    for (int i=0; i<y; i++) {
+        for (int j=0; j<valori_per_bin; j++) {
             bins[i] += frecv_pixel[i * valori_per_bin + j];
         }
     }
 
     long max_frecv_bin = 0;
-    for (int i = 0; i < y; i++) {
+    for (int i=0; i<y; i++) {
         if (bins[i] > max_frecv_bin) {
             max_frecv_bin = bins[i];
         }
@@ -267,17 +268,17 @@ void histogram2(image_t img, int x, int y, int x1, int y1, int x2, int y2) {// D
     long *bins = calloc(y, sizeof(long));
     int valori_per_bin = 256 / y;
 
-    for (int i = 0; i < y; i++) {
-        for (int j = 0; j < valori_per_bin; j++) {
+    for (int i=0; i<y; i++) {
+        for (int j=0; j<valori_per_bin; j++) {
             bins[i] += frecv_pixel[i * valori_per_bin + j];
         }
     }
     long max_frecv_bin = 0;
-    for (int i = 0; i < y; i++) {
+    for (int i=0; i<y; i++) {
         if (bins[i] > max_frecv_bin) max_frecv_bin = bins[i];
     }
 
-    for (int i = 0; i < y; i++) {
+    for (int i=0; i<y; i++) {
         int nr_stelute = 0;
         if (max_frecv_bin > 0) {
             nr_stelute = (bins[i] * x) / max_frecv_bin;
@@ -461,22 +462,22 @@ int main()
                 int new_h = y2 - y1;
                 if (strcmp(img.tip, "P3") == 0) {
                     rgb_t **new_color = coloralloc(new_h, new_w);
-                    for (int i = 0; i < new_h; i++) {
-                        for (int j = 0; j < new_w; j++) {
+                    for (int i=0; i<new_h; i++) {
+                        for (int j=0; j<new_w; j++) {
                             new_color[i][j] = img.color[y1 + i][x1 + j];
                         }
                     }
-                    for (int i = 0; i < img.height; i++) free(img.color[i]);
+                    for (int i=0; i<img.height; i++) free(img.color[i]);
                     free(img.color);
                     img.color = new_color;
                 } else {
                     int **new_matrix = matrixalloc(new_h, new_w);
-                    for (int i = 0; i < new_h; i++) {
-                        for (int j = 0; j < new_w; j++) {
+                    for (int i=0; i<new_h; i++) {
+                        for (int j=0; j<new_w; j++) {
                             new_matrix[i][j] = img.matrix[y1 + i][x1 + j];
                         }
                     }
-                    for (int i = 0; i < img.height; i++) free(img.matrix[i]);
+                    for (int i=0; i<img.height; i++) free(img.matrix[i]);
                     free(img.matrix);
                     img.matrix = new_matrix;
                 }
@@ -528,7 +529,7 @@ int main()
                     int rotations = (angle / 90) % 4;
                     if (rotations < 0) rotations += 4;
                     for (int k = 0; k < rotations; k++) {
-                        rotate_selection_90(&img);
+                        rotatieselectie90(&img);
                     }
                     printf("Rotated %d\n", angle);
                 }
